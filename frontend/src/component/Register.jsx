@@ -4,37 +4,49 @@ import { useNavigate } from 'react-router-dom';
 const Register = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false); 
+  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    setLoading(true); // Set loading to true when starting the request
+  
+    const userData = {
+      username,
+      password,
+      isAdmin,
+    };
+  
     try {
       const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password, isAdmin }),
+        body: JSON.stringify(userData),
       });
-
+  
       const data = await response.json();
-
-      if (response.ok) {
-        navigate('/login');
+  
+      if (!response.ok) {
+        setError(data.message || 'Registration failed.');
       } else {
-        setError(data.message);
+        navigate('/login');
       }
     } catch (err) {
-      console.error('Registration failed:', err);
       setError('Registration failed. Please try again.');
+    } finally {
+      setLoading(false); // Reset loading state after the request is completed
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+      <div className="bg-white p-8 rounded-lg shadow-lg text-center w-full max-w-sm">
         <h1 className="text-3xl font-bold text-blue-600 mb-4">Register</h1>
         <form onSubmit={handleRegister}>
           <div className="mb-4">
@@ -44,8 +56,10 @@ const Register = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full p-2 border rounded"
+              required
             />
           </div>
+
           <div className="mb-4">
             <input
               type="password"
@@ -53,25 +67,32 @@ const Register = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-2 border rounded"
+              required
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="isAdmin" className="text-gray-700">
-              Admin Role
-            </label>
+
+          <div className="mb-4 flex items-center justify-start">
             <input
               type="checkbox"
               id="isAdmin"
               checked={isAdmin}
-              onChange={() => setIsAdmin(!isAdmin)}
-              className="ml-2"
+              onChange={() => setIsAdmin(prev => !prev)}
+              className="mr-2"
             />
-            <span className="ml-2 text-sm text-gray-500">Check if this user is an admin</span>
+            <label htmlFor="isAdmin" className="text-gray-700">
+              Register as Admin
+            </label>
           </div>
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
-            Register
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          >
+            {loading ? 'Registering...' : 'Register'}
           </button>
         </form>
+
         {error && <p className="text-red-500 mt-4">{error}</p>}
       </div>
     </div>

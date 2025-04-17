@@ -9,6 +9,7 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     try {
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
@@ -21,15 +22,14 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Save token and role in localStorage
         localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userRole', data.role); 
 
-        // Redirect based on user role
-        if (data.role === 'admin') {
-          navigate('/admin-dashboard');
+        if (data.roles?.includes('admin')) {
+          localStorage.setItem('userRole', 'admin');
+          navigate('/admin');
         } else {
-          navigate('/'); 
+          localStorage.setItem('userRole', 'user');
+          navigate('/');
         }
       } else {
         setError(data.message);

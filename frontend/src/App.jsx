@@ -17,7 +17,6 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* General home page — any authenticated user can access */}
         <Route 
           path="/" 
           element={
@@ -27,7 +26,6 @@ function App() {
           } 
         />
 
-        {/* Admin-only dashboard */}
         <Route 
           path="/admin" 
           element={
@@ -40,5 +38,7 @@ function App() {
     </Router>
   );
 }
+
+
 
 export default App;

@@ -10,9 +10,8 @@ const AdminDashboard = () => {
     const role = localStorage.getItem('userRole');
     const token = localStorage.getItem('authToken');
 
-    // If the user is not an admin, redirect them to the home page
     if (role !== 'admin') {
-      navigate('/'); // Redirect to homepage if not an admin
+      navigate('/');  // if not admin, redirect.
       return;
     }
 
@@ -56,7 +55,7 @@ const AdminDashboard = () => {
             <tr key={user._id}>
               <td className="p-2">{user.username}</td>
               <td className="p-2">{user.roles.join(', ')}</td>
-              <td className="p-2">                
+              <td className="p-2">
                 <button className="bg-blue-600 text-white px-2 py-1 rounded">Edit</button>
               </td>
             </tr>

@@ -5,25 +5,52 @@ const Role = require("../models/RoleModel");
 
 exports.registerUser = async (req, res) => {
     const { username, password, isAdmin } = req.body;
-
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ username, password: hashedPassword });
-
-        if (isAdmin) {
-            let adminRole = await Role.findOne({ name: 'Admin' });
-            if (!adminRole) adminRole = await Role.create({ name: 'Admin', permissions: ['create', 'read', 'update', 'delete'] });
-
-            user.roles = [adminRole._id]; // Assign admin role to the user
-        }
-
-        await user.save();
-        res.status(201).json({ message: 'User registered successfully' });
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Username and password are required.' });
     }
-};
+  
+    try {
+      // Check if the user already exists
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({ message: 'User already exists.' });
+      }
+  
+      // Hash the password before saving
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Find or create the required roles
+      const roles = [];
+      if (isAdmin) {
+        const adminRole = await Role.findOne({ name: 'admin' });
+        if (!adminRole) {
+          return res.status(400).json({ message: 'Admin role not found.' });
+        }
+        roles.push(adminRole._id);
+      } else {
+        const userRole = await Role.findOne({ name: 'user' });
+        if (!userRole) {
+          return res.status(400).json({ message: 'User role not found.' });
+        }
+        roles.push(userRole._id);
+      }
+  
+      // Create a new user
+      const newUser = new User({
+        username,
+        password: hashedPassword,
+        roles  // Assign roles based on isAdmin
+      });
+  
+      await newUser.save();
+  
+      return res.status(201).json({ message: 'User registered successfully.' });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Something went wrong. Please try again.' });
+    }
+  };
 
 
 exports.loginUser = async (req, res) => {
@@ -49,20 +76,6 @@ exports.loginUser = async (req, res) => {
     }
 };
 
-exports.getAllUsers = async (req, res) => {
-    try {
-      const users = await User.find().populate("roles"); 
-      const userList = users.map(user => ({
-        _id: user._id,
-        username: user.username,
-        roles: user.roles.map(role => role.name) 
-      }));
-      res.json({ users: userList });
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      res.status(500).json({ message: 'Failed to fetch users' });
-    }
-  };
 
   exports.adminDashboard = async (req, res) => {
     try {
